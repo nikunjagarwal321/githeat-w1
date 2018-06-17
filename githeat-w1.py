@@ -1,14 +1,21 @@
 from bs4 import BeautifulSoup
 import urllib.request
 import json
+
+print("Enter Train number : ")
 train_no = input()
-output_dictionary = []
-contents_dictionary = {}
+output_dictionary = {}
 quote_page = "https://enquiry.indianrail.gov.in/xyzabc/ShowTrainSchedule?trainNo=" + train_no + "&scrnSize=&langFile=props.en-us"
 page = urllib.request.urlopen(quote_page)
 soup = BeautifulSoup(page, "html.parser")
+train_name = soup.find('div', attrs={'class':'m7','class':'s9'}).text.strip()
+days_of_running_div = soup.find('div', attrs ={'class' : 'm7','class' : 's11'})
+days_of_running = days_of_running_div.find('span').text.strip()
+output_dictionary["Train name."] = train_name
+output_dictionary["Days of run"] = days_of_running
 content = soup.find_all("tbody")[2]
 for tr in content.find_all('tr'):
+    contents_dictionary = {}
     serial_no = (tr('td')[0]).text.strip()
     station_name = (tr('td')[1]).text.strip()
     day = (tr('td')[2]).text.strip()
@@ -21,10 +28,10 @@ for tr in content.find_all('tr'):
     contents_dictionary["Arrival Time"] = arrival_time
     contents_dictionary["Departure Time"] = departure_time
     contents_dictionary["Distance"] = distance 
-    output_dictionary.append(contents_dictionary)#Note these two lines
-    print(contents_dictionary)#and this one
-print(output_dictionary)#Output mein bus last element store ho raha hai baar baar
-
-json_data = json.dumps(output_dictionary, sort_keys=True,)
+    output_dictionary[station_name]=contents_dictionary
+    
+json_data = json.dumps(output_dictionary,indent=2)
 with open('JSONData.json', 'w') as f:
      json.dump(json_data, f)
+
+print(json_data)
